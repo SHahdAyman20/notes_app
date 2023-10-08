@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:instant_notes_app/const_functions/const.dart';
 import 'package:instant_notes_app/widgets/custom_text_field.dart';
+import 'package:awesome_dialog/awesome_dialog.dart';
 
 class ForgetPassword extends StatefulWidget {
   const ForgetPassword({Key? key}) : super(key: key);
@@ -121,33 +122,48 @@ class _ForgetPasswordState extends State<ForgetPassword> {
     String email = emailController.text;
     await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
     showPasswordResetDialog();
+
   }
 
   void showPasswordResetDialog() {
-    showDialog(
+    AwesomeDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(
-          'Reset Password',
-          style: TextStyle(
-            color: primaryColor,
-            fontWeight: FontWeight.bold,
-            fontSize: 25,
-          ),
-        ),
-        content: const Text(
-          'Please check your Gmail 📧 and click on link 🔗 to reset the password',
-          style: TextStyle(
-            fontSize: 22,
-          ),
-        ),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-        ],
+      dialogType: DialogType.info,
+      title: 'Reset Password',
+      titleTextStyle: TextStyle(
+        color: primaryColor,
+        fontWeight: FontWeight.bold,
+        fontSize: 25,
       ),
-    );
+      desc: ' Please check your Gmail 📧 and click on link 🔗 to reset the password\n',
+      descTextStyle: TextStyle(
+        fontSize: 22,
+      ),
+    ).show();
   }
 }
+//*showDialog(
+//       context: context,
+//       builder: (context) => AlertDialog(
+//         title: Text(
+//           'Reset Password',
+//           style: TextStyle(
+//             color: primaryColor,
+//             fontWeight: FontWeight.bold,
+//             fontSize: 25,
+//           ),
+//         ),
+//         content: const Text(
+//           'Please check your Gmail 📧 and click on link 🔗 to reset the password',
+//           style: TextStyle(
+//             fontSize: 22,
+//           ),
+//         ),
+//         actions: <Widget>[
+//           TextButton(
+//             onPressed: () => Navigator.pop(context),
+//             child: const Text('Cancel'),
+//           ),
+//         ],
+//       ),
+//     );*/
