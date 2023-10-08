@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "559181872964",
+    "project_id": "notesapp-6ef66",
+    "storage_bucket": "notesapp-6ef66.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:559181872964:android:9f7a7d442526ced0716111",
+        "android_client_info": {
+          "package_name": "com.example.instant_notes_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAUFe1gcgJqxA9TKadp65Lh3upMvkqXvDc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
