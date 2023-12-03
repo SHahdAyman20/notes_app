@@ -1,11 +1,17 @@
+import 'dart:io';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:instant_notes_app/model/note.dart';
+import 'package:instant_notes_app/sqflite_database/database.dart';
 
 class EditNoteScreen extends StatefulWidget {
 
   Note note;
 
-   EditNoteScreen({required this.note, super.key});
+  EditNoteScreen({required this.note, super.key});
   @override
   State<StatefulWidget> createState() {
     return NewNoteScreenState();
@@ -16,18 +22,22 @@ class NewNoteScreenState extends State<EditNoteScreen> {
 
   final titleController= TextEditingController();
   final subTitleController= TextEditingController();
-  final imageUrlController= TextEditingController();
+  String imageFromGallery = '';
 
   bool isImportant=false;
   final formKey=GlobalKey<FormState>();
+
+  final fireStore= FirebaseFirestore.instance;
+  final fireStorage = FirebaseStorage.instance;
+  final auth = FirebaseAuth.instance;
 
   @override
   void initState() {
     super.initState();
     titleController.text= widget.note.title;
-    subTitleController.text=widget.note.subTitle;
-    imageUrlController.text=widget.note.imageUrl;
+    subTitleController.text=widget.note.content;
     isImportant= widget.note.isImportant;
+    imageFromGallery= widget.note.imageFromGallery;
   }
 
   @override
@@ -44,10 +54,10 @@ class NewNoteScreenState extends State<EditNoteScreen> {
             key: formKey,
             child: Column(
               children: [
-                // title text form field
                 const SizedBox(
                   height: 10,
                 ),
+                // title text form field
                 TextFormField(
                   controller: titleController,
                   validator: (value){
@@ -60,19 +70,20 @@ class NewNoteScreenState extends State<EditNoteScreen> {
                     return null;
                   },
                   decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
-                      label: Text('Title'),
+                    border: OutlineInputBorder(),
+                    label: Text('Title'),
                   ),
                 ),
-                // subTitle text form field
                 const SizedBox(
                   height: 10,
                 ),
+                // subTitle text form field
                 TextFormField(
+                  maxLines: null,
                   controller: subTitleController,
                   validator: (value){
                     if(value!.isEmpty){
-                      return 'The title is required !';
+                      return 'The sub title is required !';
                     }
                     return null;
                   },
@@ -81,27 +92,24 @@ class NewNoteScreenState extends State<EditNoteScreen> {
                     label: Text('Content'),
                   ),
                 ),
-                // image text form field
                 const SizedBox(
                   height: 10,
                 ),
-                TextFormField(
-                  controller: imageUrlController,
-                  validator: (value){
-                    if(value!.isEmpty){
-                      return 'The Image URL is required !';
-                    }
-                    return null;
-                  },
-                  decoration: const InputDecoration(
-                    border: OutlineInputBorder(),
-                    label: Text('Image URL'),
-                  ),
+                // upload another image from gallery button
+                ElevatedButton(
+                    onPressed: ()=> pickImageFromGallery(),
+                    child:const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.upload_rounded),
+                        Text('Upload another Image from gallery')
+                      ],
+                    )
+                ),
+                const SizedBox(
+                  height: 10,
                 ),
                 // check box for note is important or not
-                const SizedBox(
-                  height: 10,
-                ),
                 CheckboxListTile(
                   title: const Text('Important Note'),
                   value: isImportant,
@@ -134,6 +142,8 @@ class NewNoteScreenState extends State<EditNoteScreen> {
       ),
     );
   }
+
+
   void updateNote(){
     // if my current state not validate don't complete code
     if(!formKey.currentState!.validate()){
@@ -141,14 +151,95 @@ class NewNoteScreenState extends State<EditNoteScreen> {
     }
     String title=titleController.text;
     String subTitle = subTitleController.text;
-    String imageUrl = imageUrlController.text;
+    String imageFromGallery= this.imageFromGallery;
+
+    fireStore.
+    collection('notes').
+    doc(widget.note.id).
+    update({
+      'title': title,
+      'subTitle': subTitle,
+      'isImportant': isImportant,
+      'imageFromGallery': imageFromGallery
+    });
+
     final note = Note(
-      title: title,
-      subTitle: subTitle,
-      imageUrl: imageUrl,
-      isImportant: isImportant
+        title: title,
+        content: subTitle,
+        isImportant: isImportant,
+        id: widget.note.id,
+        imageFromGallery: imageFromGallery
     );
+    NoteDatabase.updateNotesOnDatabase(note);
+
     // here i told him to take this editing title, subTitle and return it back to display in screen
     Navigator.pop(context,note);
+  }
+
+
+  // pick image from gallery
+  // upload image to firebase storage
+  // get image url from firebase storage
+// save image url to FireBaseFireStore database
+  // update image if i choose a different image
+
+  void pickImageFromGallery() async{
+
+    final ImagePicker picker = ImagePicker();
+    final XFile? file = await picker.pickImage(
+        source: ImageSource.gallery
+    );
+    if (file != null) {
+      final image = File(file.path);
+      uploadImageToFireStorage(image, updateImageFromGallery);
+    }else{
+
+    }
+    //when i choose a picture
+    // it will be uploaded
+  }
+
+  void uploadImageToFireStorage(File image, Function(String) callback){
+
+    fireStorage.ref('NoteImage/${widget.note.id}').putFile(image).then((value){
+      print('Note image => success');
+      getImageUrl();
+    }).catchError((onError){
+      print('Note image => $onError');
+    });
+  }
+
+  void getImageUrl(){
+    fireStorage
+        .ref('NoteImage/${widget.note.id}')
+        .getDownloadURL()
+        .then((imageUrl){
+      print(imageUrl);
+      setState(() {
+        imageFromGallery = imageUrl;
+      });
+      saveImageToFireBase();
+    })
+        .catchError((onError){});
+  }
+
+  void saveImageToFireBase(){
+
+    fireStore
+        .collection('notes')
+        .doc(widget.note.id)
+        .update({
+      'imageFromGallery': imageFromGallery
+    }).then((_) {
+      print('Image URL saved to Firestore');
+    }).catchError((error) {
+      print('Failed to save image URL: $error');
+    });
+  }
+
+  void updateImageFromGallery(String imagePath) {
+    setState(() {
+      imageFromGallery = imagePath;
+    });
   }
 }

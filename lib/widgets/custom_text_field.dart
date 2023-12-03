@@ -11,7 +11,9 @@ class CustomTextField extends StatelessWidget {
   bool obscureText;
   String hintText;
   final controller;
-
+  final maxLength;
+  final enable;
+  FormFieldValidator? validator;
 
   CustomTextField(
       {super.key,
@@ -21,16 +23,22 @@ class CustomTextField extends StatelessWidget {
         this.obscureText=false,
         required this.hintText,
          this.controller,
-        required this.prefixIcon
+        required this.prefixIcon,
+         this.validator,
+        this.maxLength,
+        this.enable
       });
 
   @override
   Widget build(BuildContext context) {
-    return  TextField(
+    return  TextFormField(
+      enabled: enable,
       controller: controller,
       obscureText: obscureText,
+      validator: validator,
       keyboardType: type,
       textInputAction: action,
+      maxLength: maxLength,
       decoration: InputDecoration(
           hintText: hintText,
           suffixIcon: suffixIcon,

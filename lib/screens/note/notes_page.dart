@@ -1,9 +1,14 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:instant_notes_app/model/note.dart';
 import 'package:instant_notes_app/screens/note/add_new_note.dart';
 import 'package:instant_notes_app/screens/note/edit_note.dart';
 import 'package:instant_notes_app/screens/user_account/login_screen.dart';
+import 'package:instant_notes_app/screens/user_account/profile_screen.dart';
+import 'package:instant_notes_app/shared_preference_singleton/shared_prefernce.dart';
+import 'package:instant_notes_app/sqflite_database/database.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 
 class NotesPage extends StatefulWidget {
   const NotesPage({super.key});
@@ -13,36 +18,61 @@ class NotesPage extends StatefulWidget {
 }
 
 class _NotesPageState extends State<NotesPage> {
-  List<Note> note = [
-    Note(
-        title: 'Film ',
-        subTitle: 'Maleficent part 1 ',
-        imageUrl: 'https://cdn-icons-png.flaticon.com/512/4021/4021693.png',
-        isImportant: false),
-  ];
+
+  List<Note> myNotes = [];
+  final fireStore = FirebaseFirestore.instance;
+  final auth = FirebaseAuth.instance;
+
+
+
+  @override
+  void initState() {
+    super.initState();
+    checkInternetConnection();
+    isLoggedIn();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        centerTitle: true,
         title: const Text(
           'NOTES',
           style: TextStyle(fontSize: 25),
         ),
         actions: [
           IconButton(
-            onPressed: (){
-              // delete current user data
-            FirebaseAuth.instance.signOut();
-            // navigate me to the login screen
-            Navigator.pushReplacement(
-                context, MaterialPageRoute(
-                builder: (context) =>const LoginScreen(),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const ProfileScreen(),
+                ),
+              );
+            },
+            icon: const Icon(
+              Icons.person,
             ),
-            );
-          }, icon: const Icon(Icons.logout,),)
+          ),
+          IconButton(
+            onPressed: () {
+              // delete current user data
+              FirebaseAuth.instance.signOut();
+
+              saveLoggedOut();
+              // navigate me to the login screen
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const LoginScreen(),
+                ),
+              );
+            },
+            icon: const Icon(
+              Icons.logout,
+            ),
+          ),
         ],
       ),
       floatingActionButton: FloatingActionButton(
@@ -54,7 +84,7 @@ class _NotesPageState extends State<NotesPage> {
         ),
       ),
       body: ListView.builder(
-        itemCount: note.length,
+        itemCount: myNotes.length,
         itemBuilder: (context, index) {
           return buildNote(index);
         },
@@ -72,11 +102,11 @@ class _NotesPageState extends State<NotesPage> {
         builder: (BuildContext context) => NewNoteScreen(),
         // ,then this future function work when i back to home page to add note
       ),
-    ).then((value) => addNewNote(value));
+    ).then((value) => getNotesFromFirebase());
   }
 
   void addNewNote(value) {
-    note.add(value);
+    myNotes.add(value);
     setState(() {});
   }
 
@@ -85,23 +115,87 @@ class _NotesPageState extends State<NotesPage> {
         context,
         MaterialPageRoute(
           builder: (BuildContext context) => EditNoteScreen(
-            note: note[index],
+            note: myNotes[index],
           ),
         )).then((value) => updateNote(index, value));
   }
 
   void updateNote(int index, value) {
-    note[index] = value;
+    myNotes[index] = value;
     setState(() {});
   }
 
   String checkBox(int index) {
-    if (note[index].isImportant == true) {
+    if (myNotes[index].isImportant == true) {
       return ' Important Note';
     } else {
       return '';
     }
   }
+
+  void isLoggedIn() async{
+    final loggedIn = PreferenceUtils.getBool(PrefKeys.loggedIn);
+    print('loggedIn ====> $loggedIn');
+
+  }
+
+  void saveLoggedOut() async{
+    PreferenceUtils.setBool(PrefKeys.loggedIn,false);
+
+  }
+
+  void checkInternetConnection() async{
+    final connectivityResult = await (Connectivity().checkConnectivity());
+    // now i will check about internet
+    // if there is noooo internet => will get notes from database sqflite
+    if(connectivityResult == ConnectivityResult.none){
+      print('******** offline *********');
+      getNotesFromLocalStorage();
+    }else{
+      print('********* internet connection *********');
+      getNotesFromFirebase();
+    }
+  }
+
+  void getNotesFromFirebase() async{
+
+    final connectivityResult = await (Connectivity().checkConnectivity());
+// now i will check about internet
+    // if there is noooo internet => will get notes from database sqflite
+    if(connectivityResult == ConnectivityResult.none){
+
+      List<Note> notes = await NoteDatabase.getNotesFromDatabase();
+      setState(() {
+        myNotes = notes;
+      });
+      // if there is internet in my device => will get notes from firebase
+    }else{
+      final userId = auth.currentUser!.uid;
+      fireStore.collection('notes')
+      // where => used to but condition ok?
+      //if i didn't the all notes from all accounts will appears
+      // but here, it will display just notes from userId of this account
+          .where('userId', isEqualTo: userId)
+          .get().then((value) {
+        myNotes.clear();
+        for (var document in value.docs) {
+          final note = Note.fromMap(document.data());
+          myNotes.add(note);
+          print("====> $myNotes");
+        }
+        print("======================>$myNotes");
+        setState(() {});
+      }).catchError((error) {
+        print("======================>error$error");
+      });
+    }
+  }
+
+  void getNotesFromLocalStorage() async{
+    myNotes = await NoteDatabase.getNotesFromDatabase();
+    setState(() {});
+  }
+
 
   Widget buildNote(int index) {
     return Container(
@@ -125,7 +219,7 @@ class _NotesPageState extends State<NotesPage> {
             child: Row(
               children: [
                 Text(
-                  '${note[index].title} ',
+                  '${myNotes[index].title} ',
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
@@ -134,11 +228,12 @@ class _NotesPageState extends State<NotesPage> {
                   ),
                 ),
                 const Spacer(),
-                Image.network(
-                  note[index].imageUrl,
-                  width: 40,
-                  height: 40,
-                ),
+                if (myNotes[index].imageFromGallery.isNotEmpty)
+                SizedBox(
+                  width: 50,
+                  height: 50,
+                  child: Image.network(myNotes[index].imageFromGallery)
+                )
               ],
             ),
           ),
@@ -151,7 +246,7 @@ class _NotesPageState extends State<NotesPage> {
               bottom: 10,
             ),
             child: Text(
-              note[index].subTitle,
+              myNotes[index].content,
               maxLines: 10,
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(
@@ -162,11 +257,20 @@ class _NotesPageState extends State<NotesPage> {
           // delete and edit button
           Row(
             children: [
+              //delete button
               Expanded(
                 child: ElevatedButton.icon(
                   onPressed: () {
-                    note.removeAt(index);
+                    //delete from database on firebaseStorage
+                    fireStore
+                        .collection('notes')
+                        .doc(myNotes[index].id)
+                        .delete();
+                    NoteDatabase.deleteNotesFromDatabase(myNotes[index].id);
+                    //delete from list
+                    myNotes.removeAt(index);
                     setState(() {});
+
                   },
                   icon: const Icon(
                     Icons.delete_forever,
@@ -180,6 +284,7 @@ class _NotesPageState extends State<NotesPage> {
               const SizedBox(
                 width: 10,
               ),
+              // edit button
               Expanded(
                 child: ElevatedButton.icon(
                   onPressed: () => editNote(index),
@@ -192,32 +297,33 @@ class _NotesPageState extends State<NotesPage> {
             ],
           ),
           // checkbox
-          if (note[index].isImportant)
-          Padding(
-            padding: const EdgeInsets.only(
-              right: 10,
-              left: 10,
-              top: 10,
-            ),
-            child: Row(
-              children: [
+          if (myNotes[index].isImportant)
+            Padding(
+              padding: const EdgeInsets.only(
+                right: 10,
+                left: 10,
+                top: 10,
+              ),
+              child: Row(
+                children: [
                   const Icon(
                     Icons.note,
                     size: 20,
                   ),
-                Text(
-                  checkBox(index),
-                  style: const TextStyle(
-                    fontSize: 18,
-                    color: Color(0xff2E5962),
-                    // fontWeight: FontWeight.w500
+                  Text(
+                    checkBox(index),
+                    style: const TextStyle(
+                      fontSize: 18,
+                      color: Color(0xff2E5962),
+                      // fontWeight: FontWeight.w500
+                    ),
                   ),
-                ),
-              ],
-            ),
-          )
+                ],
+              ),
+            )
         ],
       ),
     );
   }
+
 }

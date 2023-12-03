@@ -1,51 +1,40 @@
+import 'package:firebase_auth/firebase_auth.dart';
+
 class Note {
-  String _title;
-  String _subTitle;
-  String _imageUrl;
-  bool _isImportant;
+  String id ='';
+  String userId ='';
+  String title='' ;
+  String content='';
+  String imageFromGallery='';
+  bool isImportant =false;
+
 
   Note({
-     required String title,
-     required String subTitle,
-     required String imageUrl,
-    required bool isImportant,
-  }): _title = title,
-     _subTitle = subTitle,
-     _imageUrl = imageUrl,
-     _isImportant = isImportant;
-
-
-
-  set subTitle(String subTitle) {
-    _subTitle = subTitle;
+     required this.title,
+     required this.content,
+    required this.isImportant,
+    required this.id,
+    required this.imageFromGallery
+  }){
+    userId = FirebaseAuth.instance.currentUser!.uid;
   }
 
-  String get subTitle {
-    return _subTitle;
+  Note.fromMap(Map<dynamic,dynamic> data){
+    id = data['id'];
+    userId = data['userId'];
+    title = data['title'];
+    content = data['subTitle'];
+    imageFromGallery= data['imageFromGallery'];
   }
 
-  set title(String title) {
-    _title = title;
-  }
-
-  String get title {
-    return _title;
-  }
-
-  set imageUrl(String value) {
-    _imageUrl = value;
-  }
-
-  String get imageUrl {
-    return _imageUrl;
-  }
-
-  set isImportant(bool value) {
-    _isImportant = value;
-  }
-
-  bool get isImportant {
-    return _isImportant;
+  Map<String,dynamic> toMap(){
+    return{
+      'id': id,
+      'userId': userId,
+      'title': title,
+      'subTitle': content,
+      'imageFromGallery': imageFromGallery
+    };
   }
 
 }

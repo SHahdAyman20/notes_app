@@ -4,6 +4,8 @@
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>to upload image from gallery<string>
 	<key>CFBundleDisplayName</key>
 	<string>Instant Notes App</string>
 	<key>CFBundleExecutable</key>
