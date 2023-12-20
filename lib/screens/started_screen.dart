@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:instant_notes_app/screens/note/notes_page.dart';
-import 'package:instant_notes_app/screens/user_account/login_screen.dart';
+import 'package:instant_notes_app/const_functions/const.dart';
+import 'package:instant_notes_app/screens/user_account/login/page/login_screen.dart';
+import 'package:responsive_sizer/responsive_sizer.dart';
 
 class StartedScreen extends StatefulWidget {
   const StartedScreen({super.key});
@@ -24,7 +25,7 @@ class StartedScreenState extends State<StartedScreen> {
           height: double.infinity,
         ),
         Align(
-          alignment: const Alignment(0, 0.85),
+          alignment:  Alignment(0, 0.85.sp),
           child: ElevatedButton(
             onPressed: () {
               Navigator.pushReplacement(
@@ -36,19 +37,20 @@ class StartedScreenState extends State<StartedScreen> {
             },
             style: ElevatedButton.styleFrom(
               fixedSize: Size(
-                  MediaQuery.of(context).size.width * 0.7,
-                  60,
+                  MediaQuery.of(context).size.width * 0.7.sp,
+                  60.sp,
               ),
-             // backgroundColor: const Color(0xff4678FF),
+              backgroundColor: primaryColor,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20), // <-- Radius
               ),
             ),
-            child: const Text(
-              'Get Started  ➡️',
+            child: Text(
+              'Get Started ➡',
               style: TextStyle(
-                fontSize: 30,
+                fontSize: 30.sp,
                 fontWeight: FontWeight.w700,
+                color: Colors.white
               ),
             ),
           ),

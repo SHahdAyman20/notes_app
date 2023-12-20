@@ -3,9 +3,13 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:instant_notes_app/const_functions/const.dart';
 import 'package:instant_notes_app/model/note.dart';
 import 'package:instant_notes_app/sqflite_database/database.dart';
+import 'package:instant_notes_app/widgets/custom_text_field.dart';
+import 'package:responsive_sizer/responsive_sizer.dart';
 
 class EditNoteScreen extends StatefulWidget {
 
@@ -44,22 +48,32 @@ class NewNoteScreenState extends State<EditNoteScreen> {
   Widget build(BuildContext context) {
     // TODO: implement build
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Edit Note'),
+        title:  Text('Edit Note',style: GoogleFonts.aBeeZee(
+            fontSize: 22.sp,
+            color: Colors.white
+        ),),
+        backgroundColor: primaryColor,
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.all(12.0),
+          padding:  EdgeInsets.all(12.0.sp),
           child: Form(
             key: formKey,
             child: Column(
               children: [
-                const SizedBox(
-                  height: 10,
+                 SizedBox(
+                  height: 10.sp,
                 ),
                 // title text form field
-                TextFormField(
+                CustomTextField(
+                  maxLine: 1,
                   controller: titleController,
+                  type: TextInputType.text,
+                  action: TextInputAction.next,
+                  hintText: 'Enter Note Title',
                   validator: (value){
                     if(value!.isEmpty){
                       return 'The title is required !';
@@ -69,45 +83,43 @@ class NewNoteScreenState extends State<EditNoteScreen> {
                     }
                     return null;
                   },
-                  decoration: const InputDecoration(
-                    border: OutlineInputBorder(),
-                    label: Text('Title'),
-                  ),
                 ),
-                const SizedBox(
-                  height: 10,
+                 SizedBox(
+                  height: 10.sp,
                 ),
                 // subTitle text form field
-                TextFormField(
-                  maxLines: null,
-                  controller: subTitleController,
+                CustomTextField(
+                  maxLine: null,
+                  controller: titleController,
+                  type: TextInputType.text,
+                  action: TextInputAction.next,
+                  hintText: 'Enter Note Content',
                   validator: (value){
                     if(value!.isEmpty){
                       return 'The sub title is required !';
                     }
                     return null;
                   },
-                  decoration: const InputDecoration(
-                    border: OutlineInputBorder(),
-                    label: Text('Content'),
-                  ),
                 ),
-                const SizedBox(
-                  height: 10,
+                 SizedBox(
+                  height: 10.sp,
                 ),
                 // upload another image from gallery button
                 ElevatedButton(
                     onPressed: ()=> pickImageFromGallery(),
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: primaryColor
+                    ),
                     child:const Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.upload_rounded),
-                        Text('Upload another Image from gallery')
+                        Icon(Icons.upload_rounded,color: Colors.white,),
+                        Text('Upload another Image from gallery',style: TextStyle(color: Colors.white),)
                       ],
                     )
                 ),
-                const SizedBox(
-                  height: 10,
+                 SizedBox(
+                  height: 10.sp,
                 ),
                 // check box for note is important or not
                 CheckboxListTile(
@@ -120,16 +132,19 @@ class NewNoteScreenState extends State<EditNoteScreen> {
                   },
                 ),
                 // update note button
-                const SizedBox(
-                  height: 10,
+                 SizedBox(
+                  height: 10.sp,
                 ),
                 SizedBox(
                   width: double.infinity,
                   //  height: 10,
                   child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: primaryColor
+                    ),
                     child: const Text(
                       'Update Note',
-                      style: TextStyle(fontSize: 22),
+                      style: TextStyle(fontSize: 22,color: Colors.white),
                     ),
                     onPressed: () => updateNote(),
 

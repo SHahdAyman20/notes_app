@@ -44,6 +44,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       backgroundColor: primaryColor,
       appBar: AppBar(
         elevation: 0,
+        backgroundColor: primaryColor,
+        iconTheme:const IconThemeData(color: Colors.white),
+
       ),
       body: ListView(
         children: [
@@ -136,6 +139,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     bottom: 20,top: 10,
                   ),
                   child: CustomTextField(
+                    maxLine: 1,
                     controller: nameController,
                     type: TextInputType.name,
                     action: TextInputAction.next,
@@ -159,6 +163,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     top: 10,
                   ),
                   child: CustomTextField(
+                    maxLine: 1,
                     controller: phoneController,
                     type: TextInputType.number,
                     action: TextInputAction.next,
@@ -184,6 +189,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   child: CustomTextField(
                     enable: false,
+                    maxLine: 1,
                     controller: emailController,
                     type: TextInputType.emailAddress,
                     action: TextInputAction.next,
@@ -209,7 +215,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     style: TextStyle(
                       fontSize: 25,
                       fontWeight: FontWeight.w700,
-                      // color: Color(0xff656363)
+                       color: Colors.white
                     ),
                   ),
                 ),

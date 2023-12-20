@@ -88,6 +88,7 @@ class _ForgetPasswordState extends State<ForgetPassword> {
                       top: 10,
                     ),
                     child: CustomTextField(
+                      maxLine: 1,
                       controller: emailController,
                       type: TextInputType.emailAddress,
                       action: TextInputAction.next,
@@ -122,7 +123,7 @@ class _ForgetPasswordState extends State<ForgetPassword> {
                       style: TextStyle(
                         fontSize: 25,
                         fontWeight: FontWeight.w700,
-                        // color: Color(0xff656363)
+                         color: Colors.white
                       ),
                     ),
                   ),
@@ -158,6 +159,9 @@ class _ForgetPasswordState extends State<ForgetPassword> {
     ).show();
   }
 }
+
+
+
 //*showDialog(
 //       context: context,
 //       builder: (context) => AlertDialog(

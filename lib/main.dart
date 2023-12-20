@@ -1,14 +1,14 @@
 import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:instant_notes_app/notification/notification.dart';
-import 'package:instant_notes_app/screens/note/notes_page.dart';
+import 'package:instant_notes_app/screens/note/page/notes_page.dart';
 import 'package:instant_notes_app/screens/started_screen.dart';
 import 'package:instant_notes_app/shared_preference_singleton/shared_prefernce.dart';
 import 'package:instant_notes_app/sqflite_database/database.dart';
+import 'package:responsive_sizer/responsive_sizer.dart';
 
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -64,8 +64,7 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
 
-  final color = const Color(0xff2E5962);
-
+  final color= const Color(0xff2E5962);
   @override
   void initState() {
     super.initState();
@@ -81,18 +80,16 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSwatch().copyWith(
-          primary: color,
-          secondary: color,
-        ),
-      ),
-      home: FirebaseAuth.instance.currentUser == null?
-       const StartedScreen()
-          :
-      const NotesPage(),
+    return ResponsiveSizer(
+      builder:  (context, orientation, screenType) {
+        return MaterialApp(
+          debugShowCheckedModeBanner: false,
+          home: FirebaseAuth.instance.currentUser == null ?
+          const StartedScreen()
+              :
+          const NotesPage(),
+        );
+      }
     );
   }
 }

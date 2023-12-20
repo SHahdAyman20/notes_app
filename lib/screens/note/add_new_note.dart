@@ -4,13 +4,21 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:instant_notes_app/const_functions/const.dart';
 import 'package:instant_notes_app/model/note.dart';
+import 'package:instant_notes_app/screens/note/manager/note_cubit.dart';
 import 'package:instant_notes_app/sqflite_database/database.dart';
+import 'package:instant_notes_app/widgets/custom_text_field.dart';
+import 'package:responsive_sizer/responsive_sizer.dart';
 
 class NewNoteScreen extends StatefulWidget {
 
   Note? note;
+
+  NewNoteScreen({super.key});
 
   @override
   State<StatefulWidget> createState() {
@@ -19,6 +27,10 @@ class NewNoteScreen extends StatefulWidget {
 }
 
 class NewNoteScreenState extends State<NewNoteScreen> {
+
+  late NoteCubit cubit ;
+
+
 
   final titleController = TextEditingController();
   final subTitleController = TextEditingController();
@@ -37,11 +49,23 @@ class NewNoteScreenState extends State<NewNoteScreen> {
 
 
   @override
+  void initState() {
+    super.initState();
+    cubit = BlocProvider.of<NoteCubit>(context);
+  }
+
+  @override
   Widget build(BuildContext context) {
     // TODO: implement build
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Add Note'),
+        title:  Text('Add Note',style: GoogleFonts.aBeeZee(
+            fontSize: 22.sp,
+            color: Colors.white
+        ),),
+        backgroundColor: primaryColor,
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -51,11 +75,15 @@ class NewNoteScreenState extends State<NewNoteScreen> {
             child: Column(
               children: [
                 // title text form field
-                const SizedBox(
-                  height: 10,
+                 SizedBox(
+                  height: 10.sp,
                 ),
-                TextFormField(
+                CustomTextField(
+                  maxLine: 1,
                   controller: titleController,
+                  type: TextInputType.text,
+                  action: TextInputAction.next,
+                  hintText: 'Enter Note Title',
                   validator: (value) {
                     if (value!.isEmpty) {
                       return 'The title is required !';
@@ -65,47 +93,46 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                     }
                     return null;
                   },
-                  decoration: const InputDecoration(
-                    border: OutlineInputBorder(),
-                    label: Text('Title'),
-                  ),
                 ),
-                const SizedBox(
-                  height: 10,
+                 SizedBox(
+                  height: 10.sp,
                 ),
                 // subTitle text form field
-                TextFormField(
-                  maxLines: null,
+                CustomTextField(
+                  maxLine: null,
                   controller: subTitleController,
+                  type: TextInputType.text,
+                  action: TextInputAction.done,
+                  hintText: 'Enter Note Content',
                   validator: (value) {
                     if (value!.isEmpty) {
                       return 'The content is required !';
                     }
                     return null;
                   },
-                  decoration: const InputDecoration(
-                    border: OutlineInputBorder(),
-                    label: Text('Content'),
-                  ),
                 ),
-                const SizedBox(
-                  height: 10,
+                 SizedBox(
+                  height: 10.sp,
                 ),
                 // image button
                 ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: primaryColor
+                  ),
                     onPressed: () => pickImageFromGallery(),
-                    child:const Row(
+                    child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.upload_rounded),
+                        const Icon(Icons.upload_rounded,color: Colors.white,),
                         Text(
                           'Upload Image from gallery',
-                          style: TextStyle(fontSize: 18),)
+                          style: TextStyle(fontSize: 18.sp,color: Colors.white),
+                        ),
                       ],
                     )
                 ),
-                const SizedBox(
-                  height: 10,
+                 SizedBox(
+                  height: 10.sp,
                 ),
                 // check box for note is important or not
                 CheckboxListTile(
@@ -117,16 +144,19 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                     });
                   },
                 ),
-                const SizedBox(
-                  height: 10,
+                 SizedBox(
+                  height: 10.sp,
                 ),
                 SizedBox(
                   width: double.infinity,
                   //  height: 10,
                   child: ElevatedButton(
-                    child: const Text(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: primaryColor
+                    ),
+                    child:  Text(
                       'Add Note',
-                      style: TextStyle(fontSize: 22),
+                      style: TextStyle(fontSize: 22.sp,color: Colors.white),
                     ),
                     onPressed: () => addNewNote(),
                   ),
@@ -148,6 +178,7 @@ class NewNoteScreenState extends State<NewNoteScreen> {
     String subTitle = subTitleController.text;
     String id= DateTime.now().microsecondsSinceEpoch.toString();
     String imageFromGallery=this.imageFromGallery;
+
 
 
     final note = Note(
@@ -177,7 +208,7 @@ class NewNoteScreenState extends State<NewNoteScreen> {
         source: ImageSource.gallery
     );//when i choose a picture
         if(file !=null){
-      final image = File(file!.path);
+      final image = File(file.path);
 // it will be uploaded
       uploadImageToFireStorage(image);
     }else{
